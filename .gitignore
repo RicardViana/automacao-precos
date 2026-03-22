@@ -1,0 +1,21 @@
+# Ignorar ficheiro de senhas
+.env
+
+# Ignorar pastas de ambiente virtual
+.venv/
+
+# Ignorar a pasta de dados inteira
+dados/
+
+# Ignorar ficheiros temporários do Python
+__pycache__/
+*.pyc
+
+# --- NOVAS REGRAS ADICIONADAS ---
+
+# Ignorar configurações pessoais do VS Code
+.vscode/
+*.code-workspace
+
+# Ignorar ficheiros HTML de teste
+*.html
