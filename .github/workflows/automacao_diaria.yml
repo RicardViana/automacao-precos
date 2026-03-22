@@ -1,0 +1,54 @@
+name: Automacao de Precos Diaria
+
+# QUANDO ESTE ROBÔ DEVE RODAR?
+on:
+  schedule:
+    # O GitHub usa o fuso horário UTC (Londres). 
+    # Para rodar às 12h00 (Brasília), configuramos para as 15h00 UTC.
+    - cron: '0 15 * * *'
+  
+  # Isto permite-te ir ao GitHub e clicar num botão para rodar manualmente!
+  workflow_dispatch: 
+
+jobs:
+  executar-robo:
+    # O GitHub vai emprestar-nos um computador com o Ubuntu (Linux) super rápido
+    runs-on: ubuntu-latest
+    
+    # Damos permissão ao robô para modificar ficheiros (o nosso CSV) e guardar no GitHub
+    permissions:
+      contents: write
+
+    steps:
+      # 1. Faz o download do teu código para o computador do GitHub
+      - name: Baixar o código do repositório
+        uses: actions/checkout@v4
+
+      # 2. Instala o Python e a nossa ferramenta "uv" mágica
+      - name: Instalar o Python e o UV
+        uses: astral-sh/setup-uv@v5
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      # 3. O "uv" instala o pandas, requests, bs4, etc., lendo o teu pyproject.toml
+      - name: Instalar bibliotecas
+        run: uv sync
+
+      # 4. Executa o teu script Python!
+      - name: Rodar a automação e enviar e-mail
+        env:
+          # É aqui que o robô vai buscar as senhas ao cofre (Secrets) que acabaste de criar
+          EMAIL_REMETENTE: ${{ secrets.EMAIL_REMETENTE }}
+          SENHA_APP_GMAIL: ${{ secrets.SENHA_APP_GMAIL }}
+          EMAIL_DESTINO: ${{ secrets.EMAIL_DESTINO }}
+        run: uv run automacao.py
+
+      # 5. Salva o CSV atualizado de volta no repositório (para não perder o histórico)
+      - name: Guardar o histórico (CSV) no GitHub
+        run: |
+          git config --global user.name "Robô do GitHub"
+          git config --global user.email "actions@github.com"
+          git add dados/historico_precos.csv
+          git diff --quiet && git diff --staged --quiet || git commit -m "Atualiza histórico de preços diário [Automático]"
+          git push
