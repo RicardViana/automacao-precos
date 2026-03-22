@@ -33,7 +33,7 @@ Se quiseres testar este projeto na tua máquina, o processo é incrivelmente sim
 ### 1. Clonar o Repositório
 Baixa o código para o teu computador:
 ```bash
-git clone [https://github.com/TEU_USUARIO/automacao-precos-xbox.git](https://github.com/TEU_USUARIO/automacao-precos-xbox.git)
+git clone [https://github.com/RicardViana/automacao-precos-xbox.git](https://github.com/RicardViana/automacao-precos-xbox.git)
 cd automacao-precos-xbox
 ```
 *(Substitui `TEU_USUARIO` pelo teu nome de utilizador do GitHub)*
