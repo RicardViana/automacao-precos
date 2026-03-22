@@ -6,11 +6,15 @@ import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 import os
-import json # <--- NOVA BIBLIOTECA ADICIONADA AQUI
+import json
+from dotenv import load_dotenv
 
 # ==========================================
 # 1. LISTA DE JOGOS E CONFIGURAÇÕES
 # ==========================================
+# Carrega as senhas do ficheiro .env que criaste
+load_dotenv()
+
 JOGOS_PARA_ACOMPANHAR = [
     {
         "nome": "Helldivers 2",
@@ -22,21 +26,26 @@ JOGOS_PARA_ACOMPANHAR = [
     }
 ]
 
-FICHEIRO_CSV = "historico_precos.csv"
+# Configuração da pasta de dados (como definimos para o GitHub)
+PASTA_DADOS = "dados"
+if not os.path.exists(PASTA_DADOS):
+    os.makedirs(PASTA_DADOS)
 
-# Credenciais de E-mail
-EMAIL_REMETENTE = "teu_email@gmail.com"
-SENHA_APP_GMAIL = "tua_senha_de_aplicativo"
-EMAIL_DESTINO = "teu_email@gmail.com"
+FICHEIRO_CSV = os.path.join(PASTA_DADOS, "historico_precos.csv")
+
+# Credenciais de E-mail lidas com segurança
+EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
+SENHA_APP_GMAIL = os.getenv("SENHA_APP_GMAIL")
+EMAIL_DESTINO = os.getenv("EMAIL_DESTINO")
+
+# 💡 VARIÁVEL DE CONTROLO DE TESTE
+MODO_TESTE = True # Muda para False quando quiseres enviar e-mails a sério!
 
 # ==========================================
 # 2. FUNÇÃO PARA EXTRAIR O PREÇO
 # ==========================================
 def obter_preco_atual(url):
-    """
-    Acede ao site da Xbox e extrai o preço do jogo específico.
-    Utiliza a estrutura de dados invisível (JSON-LD) da página para maior precisão.
-    """
+    """Acede ao site da Xbox e extrai o preço do jogo específico."""
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "pt-BR,pt;q=0.9"
@@ -45,30 +54,20 @@ def obter_preco_atual(url):
     try:
         resposta = requests.get(url, headers=headers)
         resposta.raise_for_status() 
-        
         soup = BeautifulSoup(resposta.text, 'html.parser')
         
-        # Estratégia Principal: Ler o JSON de metadados da página
         script_json = soup.find("script", type="application/ld+json")
-        
         if script_json:
-            # Converte o texto do script num dicionário Python
             dados = json.loads(script_json.string)
-            
-            # A página do Xbox guarda os dados numa lista chamada '@graph'
             if '@graph' in dados:
                 for item in dados['@graph']:
-                    # Procura o item que tem as 'offers' (ofertas/preços)
                     if 'offers' in item:
                         ofertas = item['offers']
-                        # Se houver uma lista de ofertas, pegamos no preço da primeira
                         if isinstance(ofertas, list) and len(ofertas) > 0:
                             return float(ofertas[0].get('price', 0.0))
-                        # Se for apenas um dicionário
                         elif isinstance(ofertas, dict):
                             return float(ofertas.get('price', 0.0))
                             
-        # Estratégia de Backup (caso o JSON falhe ou não exista na página)
         elemento_span = soup.find("span", class_=lambda c: c and "Price-module" in c)
         if elemento_span:
             texto_preco = elemento_span.text.replace("R$", "").replace("\xa0", "").replace(".", "").replace(",", ".").strip()
@@ -77,7 +76,6 @@ def obter_preco_atual(url):
     except Exception as e:
         print(f"⚠️ Erro ao procurar preço para o link {url}: {e}")
         
-    # Se falhar todas as tentativas ou der erro, retorna 0.0
     print(f"Preço não encontrado para {url}. A estrutura da página pode ter mudado.")
     return 0.0
 
@@ -151,4 +149,16 @@ if __name__ == "__main__":
         
         texto_email += texto_jogo
         
-    enviar_email(texto_email)
+    # Imprime no ecrã para tu veres o resultado do teste
+    print("\n" + "="*40)
+    print("RESULTADO DO PROCESSAMENTO:")
+    print("="*40)
+    print(texto_email)
+    print("="*40)
+    
+    # Verifica a nossa flag antes de enviar
+    if MODO_TESTE:
+        print("\n💡 MODO_TESTE está ativado. O e-mail NÃO foi enviado para a tua caixa.")
+    else:
+        print("\nA enviar o e-mail...")
+        enviar_email(texto_email)
