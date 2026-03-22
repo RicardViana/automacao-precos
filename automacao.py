@@ -94,29 +94,49 @@ def obter_preco_atual(url):
 # ==========================================
 def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual):
     """
-    Guarda o preço no CSV e calcula a diferença em relação ao dia anterior.
+    Guarda o preço no CSV (evitando duplicados no mesmo dia) 
+    e calcula a diferença em relação ao último preço conhecido.
     """
     data_hoje = datetime.now().strftime("%Y-%m-%d")
     preco_anterior = preco_atual
     
-    novo_registo = pd.DataFrame([{
-        "Data": data_hoje, 
-        "Nome": nome_jogo, 
-        "Preco": preco_atual, 
-        "Link": url_jogo
-    }])
-    
     if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
         df = pd.read_csv(FICHEIRO_CSV)
+        
+        # Filtra todos os registos anteriores deste jogo
         historico_jogo = df[df['Nome'] == nome_jogo]
         
         if not historico_jogo.empty:
-            preco_anterior = historico_jogo.iloc[-1]['Preco'] 
+            # 💡 AJUSTE: Procura se JÁ EXISTE um registo HOJE para este jogo
+            registo_hoje = historico_jogo[historico_jogo['Data'] == data_hoje]
             
-        df_final = pd.concat([df, novo_registo], ignore_index=True)
+            if not registo_hoje.empty:
+                # Se já rodaste o script hoje, o "preco_anterior" deve ser o de ONTEM
+                # (ou o último disponível antes de hoje) para a comparação fazer sentido
+                historico_antes_de_hoje = historico_jogo[historico_jogo['Data'] != data_hoje]
+                if not historico_antes_de_hoje.empty:
+                     preco_anterior = historico_antes_de_hoje.iloc[-1]['Preco']
+                
+                # Substitui o preço de hoje pelo mais recente (Update)
+                indice = registo_hoje.index[0]
+                df.at[indice, 'Preco'] = preco_atual
+                df_final = df
+                
+            else:
+                # Se é a primeira vez hoje, pega no preço do último dia e adiciona nova linha
+                preco_anterior = historico_jogo.iloc[-1]['Preco']
+                novo_registo = pd.DataFrame([{"Data": data_hoje, "Nome": nome_jogo, "Preco": preco_atual, "Link": url_jogo}])
+                df_final = pd.concat([df, novo_registo], ignore_index=True)
+        else:
+            # O jogo é novo na lista (nunca foi registado)
+            novo_registo = pd.DataFrame([{"Data": data_hoje, "Nome": nome_jogo, "Preco": preco_atual, "Link": url_jogo}])
+            df_final = pd.concat([df, novo_registo], ignore_index=True)
+            
     else:
-        df_final = novo_registo
+        # Ficheiro CSV não existe, cria do zero
+        df_final = pd.DataFrame([{"Data": data_hoje, "Nome": nome_jogo, "Preco": preco_atual, "Link": url_jogo}])
 
+    # Faz os cálculos de diferença baseados no preço anterior encontrado
     diferenca_valor = preco_atual - preco_anterior
     
     if preco_anterior > 0:
