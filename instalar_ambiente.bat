@@ -4,7 +4,6 @@ setlocal enabledelayedexpansion
 :: ======================================================
 :: CONFIGURAÇÃO DE CAMINHOS
 :: ======================================================
-:: %~dp0 pega o caminho exato onde este ficheiro .bat está guardado
 set "PASTA_PROJETO=%~dp0"
 set "ENV_LOCAL=%PASTA_PROJETO%.venv"
 
@@ -26,6 +25,7 @@ if exist "%ENV_LOCAL%" (
 
 echo.
 echo [1/3] Verificando executavel UV...
+
 :: Tenta ver se o comando 'uv' já está instalado no Windows globalmente
 where uv >nul 2>nul
 if %errorlevel% equ 0 (
@@ -37,10 +37,23 @@ if %errorlevel% equ 0 (
         set "UV_CMD="%PASTA_PROJETO%uv.exe""
         echo [OK] Arquivo uv.exe encontrado na pasta do projeto.
     ) else (
-        echo [ERRO] O comando 'uv' nao foi encontrado!
-        echo Baixe o uv.exe e coloque na pasta: %PASTA_PROJETO%
-        pause
-        exit /b
+        echo [!] UV nao encontrado. Tentando baixar e instalar automaticamente da internet...
+        
+        :: Usa o PowerShell para baixar e executar o instalador oficial do UV
+        powershell -ExecutionPolicy ByPass -Command "irm https://astral.sh/uv/install.ps1 | iex"
+        
+        :: O script oficial instala o uv na pasta do utilizador. Vamos verificar se deu certo:
+        if exist "%USERPROFILE%\.local\bin\uv.exe" (
+            set "UV_CMD="%USERPROFILE%\.local\bin\uv.exe""
+            echo [OK] UV baixado e instalado com sucesso!
+        ) else (
+            :: Se falhar (ex: firewall da empresa bloqueou o PowerShell), avisa o utilizador
+            echo [ERRO] Nao foi possivel instalar o UV automaticamente.
+            echo O Firewall da empresa pode ter bloqueado o download.
+            echo Por favor, baixe o uv.exe manualmente do GitHub e coloque na pasta: %PASTA_PROJETO%
+            pause
+            exit /b
+        )
     )
 )
 
@@ -50,7 +63,6 @@ echo [2/3] Instalando Python e criando ambiente local (.venv)...
 
 echo.
 echo [3/3] Sincronizando bibliotecas do pyproject.toml...
-:: Como estamos na pasta do projeto, o 'uv sync' lê o pyproject.toml automaticamente
 %UV_CMD% sync
 
 if %errorlevel% equ 0 (
