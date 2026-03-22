@@ -5,7 +5,8 @@ import os
 st.set_page_config(page_title="Monitor de Preços Xbox", layout="centered")
 st.title("🎮 Monitor de Preços Xbox")
 
-FICHEIRO_CSV = "historico_precos.csv"
+# 💡 AJUSTE: Apontar para a pasta "dados" onde o robô guarda o ficheiro!
+FICHEIRO_CSV = "dados/historico_precos.csv"
 
 if os.path.exists(FICHEIRO_CSV):
     df = pd.read_csv(FICHEIRO_CSV)
@@ -49,4 +50,4 @@ if os.path.exists(FICHEIRO_CSV):
         st.dataframe(df_filtrado[['Data', 'Preco']].sort_values(by="Data", ascending=False))
 
 else:
-    st.info("Ainda não existem dados no ficheiro CSV. Corre o teu script de automação primeiro!")
+    st.info("Ainda não existem dados no ficheiro CSV. O script de automação precisa rodar primeiro!")
