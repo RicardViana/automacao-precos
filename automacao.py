@@ -26,7 +26,7 @@ JOGOS_PARA_ACOMPANHAR = [
     }
 ]
 
-# Configuração da pasta de dados (como definimos para o GitHub)
+# Configuração da pasta de dados
 PASTA_DADOS = "dados"
 if not os.path.exists(PASTA_DADOS):
     os.makedirs(PASTA_DADOS)
@@ -36,10 +36,14 @@ FICHEIRO_CSV = os.path.join(PASTA_DADOS, "historico_precos.csv")
 # Credenciais de E-mail lidas com segurança
 EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
 SENHA_APP_GMAIL = os.getenv("SENHA_APP_GMAIL")
-EMAIL_DESTINO = os.getenv("EMAIL_DESTINO")
 
-# 💡 VARIÁVEL DE CONTROLO DE TESTE
-MODO_TESTE = True # Muda para False quando quiseres enviar e-mails a sério!
+# 💡 AJUSTE 1: Prepara o código para receber vários e-mails (lista)
+email_destino_env = os.getenv("EMAIL_DESTINO", "")
+# Transforma os e-mails separados por vírgula numa lista do Python
+EMAIL_DESTINO = [email.strip() for email in email_destino_env.split(",") if email.strip()]
+
+# 💡 AJUSTE 2: MODO_TESTE para False (O robô vai agora enviar o e-mail a sério!)
+MODO_TESTE = False 
 
 # ==========================================
 # 2. FUNÇÃO PARA EXTRAIR O PREÇO
@@ -63,14 +67,20 @@ def obter_preco_atual(url):
                 for item in dados['@graph']:
                     if 'offers' in item:
                         ofertas = item['offers']
+                        # 💡 AJUSTE 3: Proteção preventiva contra o sinal '+'
                         if isinstance(ofertas, list) and len(ofertas) > 0:
-                            return float(ofertas[0].get('price', 0.0))
+                            valor_str = str(ofertas[0].get('price', 0.0))
+                            return float(valor_str.replace('+', '').strip())
                         elif isinstance(ofertas, dict):
-                            return float(ofertas.get('price', 0.0))
+                            valor_str = str(ofertas.get('price', 0.0))
+                            return float(valor_str.replace('+', '').strip())
                             
         elemento_span = soup.find("span", class_=lambda c: c and "Price-module" in c)
         if elemento_span:
-            texto_preco = elemento_span.text.replace("R$", "").replace("\xa0", "").replace(".", "").replace(",", ".").strip()
+            texto_preco = elemento_span.text.replace("R$", "").replace("\xa0", "").replace(".", "").replace(",", "").replace("+", "").strip()
+            # Tratamento da vírgula do padrão brasileiro para o ponto do Python
+            if "," in elemento_span.text:
+                 texto_preco = elemento_span.text.replace("R$", "").replace(".", "").replace(",", ".").replace("+", "").strip()
             return float(texto_preco)
             
     except Exception as e:
@@ -85,12 +95,10 @@ def obter_preco_atual(url):
 def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual):
     """
     Guarda o preço no CSV e calcula a diferença em relação ao dia anterior.
-    Possui proteção contra avisos de concatenação (FutureWarning) do Pandas.
     """
     data_hoje = datetime.now().strftime("%Y-%m-%d")
     preco_anterior = preco_atual
     
-    # 1. Prepara a linha de dados apenas com o jogo de hoje
     novo_registo = pd.DataFrame([{
         "Data": data_hoje, 
         "Nome": nome_jogo, 
@@ -98,26 +106,17 @@ def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual):
         "Link": url_jogo
     }])
     
-    # 2. Verifica se o ficheiro já existe e se TEM dados dentro dele (tamanho > 0)
     if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
-        # Carrega o histórico completo
         df = pd.read_csv(FICHEIRO_CSV)
-        
-        # Filtra para procurar apenas o histórico deste jogo específico
         historico_jogo = df[df['Nome'] == nome_jogo]
         
         if not historico_jogo.empty:
             preco_anterior = historico_jogo.iloc[-1]['Preco'] 
             
-        # Como o "df" não está vazio, podemos usar o concat com toda a segurança!
         df_final = pd.concat([df, novo_registo], ignore_index=True)
-        
     else:
-        # Se é a primeiríssima vez a rodar, a nossa tabela é apenas o registo de hoje.
-        # Evitamos o `concat` e assim o Pandas nunca vai dar o FutureWarning!
         df_final = novo_registo
 
-    # 3. Faz os cálculos de diferença solicitados
     diferenca_valor = preco_atual - preco_anterior
     
     if preco_anterior > 0:
@@ -125,18 +124,18 @@ def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual):
     else:
         diferenca_perc = 0.0
 
-    # 4. Guarda o resultado final no ficheiro CSV
     df_final.to_csv(FICHEIRO_CSV, index=False)
-    
     return preco_anterior, diferenca_valor, diferenca_perc
 
 # ==========================================
 # 4. ENVIO DE E-MAIL CONSOLIDADO
 # ==========================================
 def enviar_email(corpo_mensagem):
+    # 💡 AJUSTE 1: Nova lógica compatível com listas de e-mails
     msg = MIMEMultipart()
     msg['From'] = EMAIL_REMETENTE
-    msg['To'] = EMAIL_DESTINO
+    # Junta a lista de e-mails com vírgula para aparecer certinho no cabeçalho
+    msg['To'] = ", ".join(EMAIL_DESTINO) 
     msg['Subject'] = f"Atualização Diária de Preços Xbox - {datetime.now().strftime('%d/%m/%Y')}"
     
     msg.attach(MIMEText(corpo_mensagem, 'plain'))
@@ -145,9 +144,10 @@ def enviar_email(corpo_mensagem):
         servidor = smtplib.SMTP('smtp.gmail.com', 587)
         servidor.starttls()
         servidor.login(EMAIL_REMETENTE, SENHA_APP_GMAIL)
-        servidor.send_message(msg)
+        # O sendmail é o comando correto para enviar para múltiplos destinatários no Python
+        servidor.sendmail(EMAIL_REMETENTE, EMAIL_DESTINO, msg.as_string())
         servidor.quit()
-        print("E-mail com todos os jogos enviado com sucesso!")
+        print(f"E-mail enviado com sucesso para: {', '.join(EMAIL_DESTINO)}")
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
 
@@ -169,16 +169,14 @@ if __name__ == "__main__":
         
         texto_email += texto_jogo
         
-    # Imprime no ecrã para tu veres o resultado do teste
     print("\n" + "="*40)
     print("RESULTADO DO PROCESSAMENTO:")
     print("="*40)
     print(texto_email)
     print("="*40)
     
-    # Verifica a nossa flag antes de enviar
     if MODO_TESTE:
-        print("\n💡 MODO_TESTE está ativado. O e-mail NÃO foi enviado para a tua caixa.")
+        print("\n💡 MODO_TESTE está ativado. O e-mail NÃO foi enviado.")
     else:
         print("\nA enviar o e-mail...")
         enviar_email(texto_email)
