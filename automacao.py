@@ -1,17 +1,20 @@
+# importar bibliotecas
 import requests
-from bs4 import BeautifulSoup
-import pandas as pd
-from datetime import datetime
 import smtplib
-from email.mime.text import MIMEText
-from email.mime.multipart import MIMEMultipart
+import pandas as pd
 import os
 import json
+
+from bs4 import BeautifulSoup
+from datetime import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 from dotenv import load_dotenv
 
 # ==========================================
 # 1. LISTA DE JOGOS E CONFIGURAÇÕES
 # ==========================================
+
 # Carrega as senhas do ficheiro .env que criaste
 load_dotenv()
 
@@ -36,20 +39,21 @@ FICHEIRO_CSV = os.path.join(PASTA_DADOS, "historico_precos.csv")
 # Credenciais de E-mail lidas com segurança
 EMAIL_REMETENTE = os.getenv("EMAIL_REMETENTE")
 SENHA_APP_GMAIL = os.getenv("SENHA_APP_GMAIL")
-
-# 💡 AJUSTE 1: Prepara o código para receber vários e-mails (lista)
 email_destino_env = os.getenv("EMAIL_DESTINO", "")
+
 # Transforma os e-mails separados por vírgula numa lista do Python
 EMAIL_DESTINO = [email.strip() for email in email_destino_env.split(",") if email.strip()]
 
-# 💡 AJUSTE 2: MODO_TESTE para False (O robô vai agora enviar o e-mail a sério!)
+# Variavel usada para teste --> Não envia o e-mail
 MODO_TESTE = False 
 
 # ==========================================
 # 2. FUNÇÃO PARA EXTRAIR O PREÇO
 # ==========================================
+
 def obter_preco_atual(url):
     """Acede ao site da Xbox e extrai o preço do jogo específico."""
+
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
         "Accept-Language": "pt-BR,pt;q=0.9"
@@ -92,6 +96,7 @@ def obter_preco_atual(url):
 # ==========================================
 # 3. LÓGICA DE DADOS E COMPARAÇÃO
 # ==========================================
+
 def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual):
     """
     Guarda o preço no CSV (evitando duplicados no mesmo dia) 
