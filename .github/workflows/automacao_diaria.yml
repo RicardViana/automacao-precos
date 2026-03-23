@@ -4,8 +4,8 @@ name: Automacao de Precos Diaria
 on:
   schedule:
     # O GitHub usa o fuso horário UTC (Londres). 
-    # Para rodar às 12h00 (Brasília), configuramos para as 15h00 UTC.
-    - cron: '0 15 * * *'
+    # Para rodar às 11h01 (Brasília), configuramos para as 14h01 UTC.
+    - cron: '1 14 * * *'
   
   # Isto permite-te ir ao GitHub e clicar num botão para rodar manualmente!
   workflow_dispatch: 
