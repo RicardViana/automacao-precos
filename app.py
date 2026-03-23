@@ -1,9 +1,10 @@
 import streamlit as st
 import pandas as pd
 import os
+import plotly.express as px
 
-st.set_page_config(page_title="Monitor de Preços Xbox", layout="centered")
-st.title("🎮 Monitor de Preços Xbox")
+st.set_page_config(page_title="Monitor de Preços", layout="centered")
+st.title("🎮 Monitor de Preços")
 
 # 💡 AJUSTE: Apontar para a pasta "dados" onde o robô guarda o ficheiro!
 FICHEIRO_CSV = "dados/historico_precos.csv"
@@ -34,20 +35,50 @@ if os.path.exists(FICHEIRO_CSV):
         preco_anterior = df_filtrado['Preco'].iloc[-2] if se_houver_historico else preco_atual
         diferenca = preco_atual - preco_anterior
         
+        # 💡 AJUSTE: Só mostrar o delta se houver uma variação real no preço
+        if se_houver_historico and diferenca != 0:
+            delta_formatado = f"R$ {diferenca:.2f}"
+        else:
+            delta_formatado = None
+        
         # Mostra o preço com uma setinha verde/vermelha dependendo se subiu ou desceu
         st.metric(label="Preço Mais Recente", 
                   value=f"R$ {preco_atual:.2f}", 
-                  delta=f"R$ {diferenca:.2f}" if se_houver_historico else None,
-                  delta_color="inverse") # 'inverse' faz com que descidas de preço sejam verdes!
+                  delta=delta_formatado,
+                  delta_color="inverse")
         
-        # Cria o gráfico
+        # Cria o gráfico profissional com Plotly
         st.write("### Evolução do Preço ao Longo do Tempo")
-        # Define o índice como Data para o gráfico ficar com a linha do tempo correta
-        st.line_chart(df_filtrado.set_index('Data')['Preco'])
+        
+        # Preparamos uma coluna de data só com Dia/Mês para ficar bonito no eixo X
+        df_grafico = df_filtrado.copy()
+        df_grafico['Data_Exibicao'] = df_grafico['Data'].dt.strftime('%d/%m')
+        
+        fig = px.line(
+            df_grafico, 
+            x='Data_Exibicao', 
+            y='Preco', 
+            markers=True, # Adiciona bolinhas em cada dia para facilitar a visualização
+            labels={'Data_Exibicao': 'Data', 'Preco': 'Preço (R$)'}
+        )
+        
+        # Força o eixo Y a focar apenas na área onde o preço varia (não começa do zero)
+        fig.update_layout(yaxis=dict(autorange=True))
+        
+        # Mostra o gráfico no Streamlit
+        st.plotly_chart(fig, use_container_width=True)
         
         # Tabela de dados apenas do jogo selecionado
         st.write("### Histórico de Registos")
-        st.dataframe(df_filtrado[['Data', 'Preco']].sort_values(by="Data", ascending=False))
+        
+        # 1. Filtra as colunas e ordena da mais recente para a mais antiga
+        tabela_exibicao = df_filtrado[['Data', 'Preco']].sort_values(by="Data", ascending=False)
+        
+        # 2. Formata a coluna 'Data' para mostrar apenas Ano-Mês-Dia (tira o 00:00:00)
+        tabela_exibicao['Data'] = tabela_exibicao['Data'].dt.strftime('%Y-%m-%d')
+        
+        # 3. Exibe a tabela ocultando o índice (hide_index=True)
+        st.dataframe(tabela_exibicao, hide_index=True)
 
 else:
     st.info("Ainda não existem dados no ficheiro CSV. O script de automação precisa rodar primeiro!")
