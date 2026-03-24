@@ -1,12 +1,41 @@
+# Import das bibliotecas necessarias
 import streamlit as st
 import pandas as pd
 import os
 import plotly.express as px
 
-st.set_page_config(page_title="Monitor de Preços de jogos", layout="centered")
+# Configuração da página 
+st.set_page_config(
+    page_title="Monitor de Preços de jogos", 
+    page_icon="🎮",
+    layout="centered",
+    initial_sidebar_state="collapsed")
+
+# Barra lateral
+with st.sidebar:
+    st.header("📌 Sobre o Projeto")
+    st.info(
+        """
+        Este é um **Monitor de Preços Automático** para a loja da Xbox.
+        O sistema extrai os dados diariamente de forma autónoma na nuvem 
+        e guarda o histórico para te ajudar a comprar jogos pelo melhor preço!
+        """
+    )
+    st.markdown("---")
+
+    st.subheader("👨‍💻 Desenvolvedor")
+    st.markdown("• [Ricardo Vieira Viana](https://www.linkedin.com/in/ricardvviana)")
+        
+    st.markdown("---")
+    
+    st.subheader("📂 Código Fonte")
+    st.markdown("Acede ao repositório completo e descobre como foi feito:")
+    st.link_button("🔗 Ver no GitHub", "https://github.com/RicardViana/automacao-precos-xbox")
+
+# Titulo da aba
 st.title("🎮 Monitor de Preços de Jogos do Xbox")
 
-# 💡 AJUSTE: Apontar para a pasta "dados" onde o robô guarda o ficheiro!
+# Fonte de dados usada para gerar o dash
 FICHEIRO_CSV = "dados/historico_precos.csv"
 
 if os.path.exists(FICHEIRO_CSV):
