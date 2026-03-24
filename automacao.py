@@ -156,14 +156,18 @@ def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual):
 # 4. ENVIO DE E-MAIL CONSOLIDADO
 # ==========================================
 def enviar_email(corpo_mensagem):
-    # 💡 AJUSTE 1: Nova lógica compatível com listas de e-mails
+    # 💡 AJUSTE: Adiciona o link do Dashboard ao final da mensagem original
+    texto_final = corpo_mensagem + "\n\n📊 Acompanha os gráficos e o histórico completo no nosso Dashboard:\nhttps://historico-preco.streamlit.app/"
+
+    # Nova lógica compatível com listas de e-mails
     msg = MIMEMultipart()
     msg['From'] = EMAIL_REMETENTE
     # Junta a lista de e-mails com vírgula para aparecer certinho no cabeçalho
     msg['To'] = ", ".join(EMAIL_DESTINO) 
     msg['Subject'] = f"Atualização Diária de Preços Xbox - {datetime.now().strftime('%d/%m/%Y')}"
     
-    msg.attach(MIMEText(corpo_mensagem, 'plain'))
+    # 💡 AJUSTE: Anexa o 'texto_final' (que já tem o link) em vez do corpo original
+    msg.attach(MIMEText(texto_final, 'plain'))
     
     try:
         servidor = smtplib.SMTP('smtp.gmail.com', 587)
