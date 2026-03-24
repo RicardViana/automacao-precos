@@ -12,6 +12,7 @@ __pycache__/
 .vscode/
 *.code-workspace
 
-# Ignorar ficheiros HTML de teste
+# Outros
 *.html
 apoio_gemini.txt
+instalar_ambiente.bat
