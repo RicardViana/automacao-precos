@@ -97,8 +97,12 @@ if os.path.exists(FICHEIRO_CSV):
             labels={'Data_Exibicao': 'Data', 'Preco': 'Preço (R$)'}
         )
         
-        # Força o eixo Y a focar apenas na área onde o preço varia (não começa do zero)
-        fig.update_layout(yaxis=dict(autorange=True))
+        # Força o eixo Y, zera a margem e reduz a altura total da "tela"
+        fig.update_layout(
+            yaxis=dict(autorange=True),
+            margin=dict(t=0, b=30, l=0, r=0),
+            height=300 
+        )
         
         # Mostra o gráfico no Streamlit
         st.plotly_chart(fig, width='stretch')
