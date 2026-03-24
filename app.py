@@ -46,6 +46,8 @@ if os.path.exists(FICHEIRO_CSV):
     lista_de_jogos = df['Nome'].unique()
     
     # 2. Cria uma caixa de seleção para o utilizador escolher o jogo
+    st.markdown("---")
+
     jogo_selecionado = st.selectbox("Escolhe um jogo para analisar:", lista_de_jogos)
     
     # 3. Filtra os dados apenas para o jogo selecionado
@@ -56,6 +58,8 @@ if os.path.exists(FICHEIRO_CSV):
         link_jogo = df_filtrado['Link'].iloc[0]
         st.markdown(f"**Link:** [Loja Xbox]({link_jogo})")
         
+        st.markdown("---")
+
         # Calcula métricas para o Dashboard
         preco_atual = df_filtrado['Preco'].iloc[-1]
         
@@ -76,6 +80,8 @@ if os.path.exists(FICHEIRO_CSV):
                   delta=delta_formatado,
                   delta_color="inverse")
         
+        st.markdown("---")
+
         # Cria o gráfico profissional com Plotly
         st.write("### Evolução do Preço ao Longo do Tempo")
         
