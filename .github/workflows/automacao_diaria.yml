@@ -14,6 +14,9 @@ jobs:
     # O GitHub vai emprestar-nos um computador com o Ubuntu (Linux) super rápido
     runs-on: ubuntu-latest
     
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
     # Damos permissão ao robô para modificar ficheiros (o nosso CSV) e guardar no GitHub
     permissions:
       contents: write
