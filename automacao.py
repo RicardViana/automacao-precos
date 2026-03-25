@@ -173,7 +173,7 @@ def enviar_email(corpo_mensagem):
     """Enviar o e-mail com o preço do dia"""
 
     # Link do Dashboard ao final da mensagem original
-    texto_final = corpo_mensagem + "\n📊 Acompanha os gráficos e o histórico completo no nosso Dashboard:\nhttps://historico-preco.streamlit.app/"
+    texto_final = corpo_mensagem + "📊 Acompanha os gráficos e o histórico completo no nosso Dashboard:\nhttps://historico-preco.streamlit.app/"
 
     msg = MIMEMultipart()
 
