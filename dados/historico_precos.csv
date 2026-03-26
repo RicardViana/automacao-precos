@@ -1,9 +1,12 @@
-Data,Nome,Preco,Link
-2026-03-22,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
-2026-03-22,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
-2026-03-23,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
-2026-03-23,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
-2026-03-24,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
-2026-03-24,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
-2026-03-25,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
-2026-03-25,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
+Data,Hora,Loja,Nome,Preco,Link
+2026-03-22,,xbox,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
+2026-03-22,,xbox,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
+2026-03-23,,xbox,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
+2026-03-23,,xbox,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
+2026-03-24,,xbox,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
+2026-03-24,,xbox,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
+2026-03-25,,xbox,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
+2026-03-25,,xbox,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
+2026-03-26,05:58:16,xbox,Helldivers 2,229.9,https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m
+2026-03-26,05:58:59,xbox,Crimson Desert,349.99,https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010
+2026-03-26,05:58:59,mercadolivre,PlayStation 5 Slim Digital,3569.0,https://www.mercadolivre.com.br/console-playstation-5-slim-edico-digital-825-gb/p/MLB54963150
