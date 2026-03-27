@@ -147,32 +147,48 @@ def extrair_preco_mercadolivre(soup):
 # Obter o preço atual 
 def obter_preco_atual(url, loja):
 
-    """Acessa o site usando os headers e redireciona o HTML para o especialista da loja."""
+    """Acessa o site usando os headers reforçados e redireciona o HTML para o especialista da loja."""
 
-    # Configuração do cabecalho para requisicao
+    # Configuração do cabecalho
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36",
         "Accept-Language": "pt-BR,pt;q=0.9,en-US;q=0.8,en;q=0.7",
-        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8",
-        "Referer": "https://www.google.com/"
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",
+        "Referer": "https://www.google.com.br/",
+        "Sec-Ch-Ua": '"Chromium";v="122", "Not(A:Brand";v="24", "Google Chrome";v="122"',
+        "Sec-Ch-Ua-Mobile": "?0",
+        "Sec-Ch-Ua-Platform": '"Windows"',
+        "Sec-Fetch-Dest": "document",
+        "Sec-Fetch-Mode": "navigate",
+        "Sec-Fetch-Site": "cross-site",
+        "Upgrade-Insecure-Requests": "1"
     }
-
+    
     try:
         # Leitura dos dados do site
         resposta = requests.get(url, headers=headers)
         resposta.raise_for_status() 
         soup = BeautifulSoup(resposta.text, 'html.parser')
         
+        preco_final = 0.0
+
         # Redireciona para o especialista correto
         if loja == "xbox":
-            return extrair_preco_xbox(soup)
+            preco_final = extrair_preco_xbox(soup)
         
         elif loja == "mercadolivre":
-            return extrair_preco_mercadolivre(soup)
+            preco_final = extrair_preco_mercadolivre(soup)
         
         else:
             print(f"⚠️ Loja desconhecida: {loja}")
             return 0.0
+
+        # Se voltar ZERO, vamos ver o que nos entregou!
+        if preco_final == 0.0:
+            titulo_pagina = soup.title.text if soup.title else "Sem título"
+            print(f"🕵️‍♂️ ALERTA: Preço 0.0 encontrado! O título da página lida foi: '{titulo_pagina}'")
+
+        return preco_final
             
     except Exception as e:
         print(f"⚠️ Erro ao procurar preço para o link {url}: {e}")
