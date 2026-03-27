@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 # 1. Lista de jogos e configurações
 
 # Variavel usada para não enviar o e-mail (teste)
-MODO_TESTE = True 
+MODO_TESTE = False 
 
 # Carrega as senhas do ficheiro .env
 load_dotenv()
