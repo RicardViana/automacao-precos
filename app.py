@@ -128,7 +128,10 @@ if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
         
         fig.update_layout(
             yaxis=dict(autorange=True),
-            xaxis=dict(tickformat="%d/%m"), 
+            xaxis=dict(
+                tickvals=df_grafico['Data_Hora'], 
+                tickformat="%d/%m - %H:%M"
+            ), 
             margin=dict(t=0, b=30, l=0, r=0),
             height=300,
             hovermode="x unified"
