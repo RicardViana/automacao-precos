@@ -1,7 +1,6 @@
 # Import das bibliotecas necessarias
 import streamlit as st
 import pandas as pd
-import os
 import plotly.express as px
 
 # Configuração da página 
@@ -33,13 +32,13 @@ with st.sidebar:
     st.link_button("🔗 Ver no GitHub", "https://github.com/RicardViana/automacao-precos-xbox")
 
 # Titulo da página
-st.title("🎮 Monitor de Preços")
+st.title("🎮 Monitor de Preços: Multi-loja")
 
 # Fonte de dados usada para gerar o dash
-FICHEIRO_CSV = "dados/historico_precos.csv"
-
-# Carregar e preparar os dados
-if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
+FICHEIRO_CSV = "https://raw.githubusercontent.com/RicardViana/automacao-precos-xbox/main/dados/historico_precos.csv"
+# Carregamento e preparação dos dados
+try:
+    # O Pandas faz o download da versão mais recente do CSV em tempo real
     df = pd.read_csv(FICHEIRO_CSV)
     
     # 1. Tratamento das colunas Loja e Hora (para retrocompatibilidade)
@@ -62,7 +61,6 @@ if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
     # Menu 1: Selecionar a Loja
     lojas_disponiveis = df['Loja'].unique()
     
-    # Dicionário visual para deixar o nome das lojas mais bonito
     nomes_lojas_bonitos = {
         'xbox': '🟢 Loja Xbox (Digital)',
         'mercadolivre': '🟡 Mercado Livre (Físico)'
@@ -77,13 +75,12 @@ if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
     # Filtrar os dados apenas para a loja selecionada
     df_loja = df[df['Loja'] == loja_selecionada]
     
-    # Menu 2: Selecionar o Produto 
+    # Menu 2: Selecionar o Produto
     produtos_disponiveis = df_loja['Nome'].unique()
     produto_selecionado = st.selectbox("2️⃣ Seleciona o Produto para analisar:", produtos_disponiveis)
     
     # Construção do dashboard
-    
-    # Filtrar e ordenar cronologicamente pela Data e Hora!
+    # Filtrar e ordenar cronologicamente pela Data e Hora
     df_filtrado = df_loja[df_loja['Nome'] == produto_selecionado].sort_values(by="Data_Hora")
     
     if not df_filtrado.empty:
@@ -100,7 +97,6 @@ if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
         
         if se_houver_historico and diferenca != 0:
             delta_formatado = f"R$ {diferenca:.2f}"
-
         else:
             delta_formatado = None
         
@@ -129,7 +125,7 @@ if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
         fig.update_layout(
             yaxis=dict(autorange=True),
             xaxis=dict(
-                tickvals=df_grafico['Data_Hora'], 
+                tickvals=df_grafico['Data_Hora'],
                 tickformat="%d/%m - %H:%M"
             ), 
             margin=dict(t=0, b=30, l=0, r=0),
@@ -148,5 +144,5 @@ if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
         
         st.dataframe(tabela_exibicao, hide_index=True, width='stretch')
 
-else:
-    st.info("Ainda não existem dados no ficheiro CSV. O script de automação precisa rodar primeiro!")
+except Exception as e:
+    st.info("Ainda não existem dados no ficheiro CSV ou os dados estão a carregar. A automação precisa rodar primeiro!")
