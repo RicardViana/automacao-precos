@@ -91,6 +91,7 @@ try:
         st.markdown(f"**Link Original:** [Acessar a Página de Venda]({link_item})")
         st.markdown("---")
 
+
         # Métricas
         preco_atual = df_filtrado['Preco'].iloc[-1]
         
@@ -99,7 +100,11 @@ try:
         diferenca = preco_atual - preco_anterior
         
         if se_houver_historico and diferenca != 0:
-            delta_formatado = f"R$ {diferenca:.2f}"
+            if diferenca < 0:
+                delta_formatado = f"-R$ {abs(diferenca):.2f}" # Transforma "-57.48" em "-R$ 57.48" (O abs() remove o menos original do número)
+                
+            else:
+                delta_formatado = f"R$ {diferenca:.2f}"
         else:
             delta_formatado = None
         
