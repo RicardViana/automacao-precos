@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 # 1. Lista de jogos e configurações
 
 # Variavel usada para não enviar o e-mail (teste)
-MODO_TESTE = False 
+MODO_TESTE = True 
 
 # Carrega as senhas do ficheiro .env
 load_dotenv()
@@ -60,42 +60,91 @@ EMAIL_DESTINO = [email.strip() for email in email_destino_env.split(",") if emai
 
 def extrair_preco_xbox(soup):
 
-    """Especialista em ler o site da Xbox e extrair o preço do jogo específico."""
-    
-    # Buscar dados no formato JSON-LD
+    """
+    Especialista em ler o site da Xbox.
+    Lida com a estrutura dinâmica do JSON e aplica a Regra da Realidade Numérica no HTML
+    para ignorar descontos pequenos do Game Pass.
+    """
+
+    # PLANO A--> Procurar no JSON-LD (O mais limpo)
     script_json = soup.find("script", type="application/ld+json")
 
     if script_json:
-        dados = json.loads(script_json.string)
 
-        # Buscar o preço do JSON 
-        if '@graph' in dados:
-            for item in dados['@graph']:
+        try:
+            dados = json.loads(script_json.string)
+            precos_json = []
 
-                if 'offers' in item:
-                    ofertas = item['offers']
+            # Função interna para varrer o JSON recursivamente procurando por "price"
+            def procurar_preco_json(obj):
 
-                    # Validar se o preço é unico ou tem mais de um preço 
-                    if isinstance(ofertas, list) and len(ofertas) > 0:
-                        valor_str = str(ofertas[0].get('price', 0.0))
-                        return float(valor_str.replace('+', '').strip())
-                    
-                    elif isinstance(ofertas, dict):
-                        valor_str = str(ofertas.get('price', 0.0))
-                        return float(valor_str.replace('+', '').strip())
+                if isinstance(obj, dict):
+                    if 'price' in obj and obj.get('price') != 0:
+                        valor_str = str(obj.get('price')).replace('+', '').strip()
+
+                        try:
+                            precos_json.append(float(valor_str))
+
+                        except ValueError:
+                            pass
+
+                    for k, v in obj.items():
+                        procurar_preco_json(v)
+
+                elif isinstance(obj, list):
+                    for item in obj:
+                        procurar_preco_json(item)
+
+            procurar_preco_json(dados)
+
+            if precos_json:
+                precos_json = [p for p in precos_json if p > 0]
+
+                if precos_json:
+                    return min(precos_json)
+                
+        except Exception:
+            pass
+
+    # PLANO B --> Leitura do HTML (Regra da Realidade)
+    precos_html = []
+    elementos_preco = soup.find_all(class_=lambda c: c and "Price-module" in c)
     
-    # Caso os dados não esteja no formato JSON usar o HTML                
-    elemento_span = soup.find("span", class_=lambda c: c and "Price-module" in c)
+    for el in elementos_preco:
+        texto = el.get_text(separator=' ')
 
-    # Tratar o dado para o formato do Brasil
-    if elemento_span:
-        texto_preco = elemento_span.text.replace("R$", "").replace("\xa0", "").replace(".", "").replace(",", "").replace("+", "").strip()
+        # Procura o padrão de dinheiro do Brasil
+        matches = re.findall(r'R\$\s*([\d\.]+(?:,\d{2})?)', texto)
+        
+        for m in matches:
+            valor_str = m.replace('.', '').replace(',', '.')
 
-        if "," in elemento_span.text:
-             texto_preco = elemento_span.text.replace("R$", "").replace(".", "").replace(",", ".").replace("+", "").strip()
+            try:
+                valor = float(valor_str)
+                if valor > 0:
+                    precos_html.append(valor)
 
-        return float(texto_preco)
-    
+            except ValueError:
+                continue
+
+    if precos_html:
+        
+        # Filtramos a lista removendo duplicados
+        precos_unicos = list(set(precos_html))
+        
+        # Se encontrou mais de um preço (ex: [229.90, 172.42, 11.50])
+        if len(precos_unicos) > 1:
+            preco_maximo = max(precos_unicos)
+            
+            # Filtramos a lista ignorando qualquer valor que seja menor que 30% do preço máximo.
+            precos_validos = [p for p in precos_unicos if p >= (preco_maximo * 0.3)]
+            
+            if precos_validos:
+                return min(precos_validos)
+                
+        # Se só houver um preço ou a lógica acima falhar
+        return min(precos_unicos)
+
     return 0.0
 
 def extrair_preco_mercadolivre(soup):
