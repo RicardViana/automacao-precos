@@ -15,6 +15,9 @@ on:
 jobs:
   executar-robo:
 
+    # Trecho para ativar ou desativar
+    if: true
+
     # Tipo de computador usar
     runs-on: ubuntu-latest
     
