@@ -41,6 +41,9 @@ try:
     # O Pandas faz o download da versão mais recente do CSV em tempo real
     df = pd.read_csv(FICHEIRO_CSV)
     
+    # Ignorar qualquer linha onde o preço seja 0.0
+    df = df[df['Preco'] > 0.0]
+
     # 1. Tratamento das colunas Loja e Hora (para retrocompatibilidade)
     if 'Loja' not in df.columns:
         df['Loja'] = 'xbox'
