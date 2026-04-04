@@ -128,7 +128,7 @@ def extrair_preco_xbox(soup):
                 continue
 
     if precos_html:
-        
+
         # Filtramos a lista removendo duplicados
         precos_unicos = list(set(precos_html))
         
@@ -255,6 +255,10 @@ def atualizar_dados_e_comparar(nome_jogo, url_jogo, preco_atual, loja):
     Calcula a diferença em relação ao último preço conhecido na MESMA loja.
     """
 
+    if preco_atual <= 0.0:
+        print(f"⚠️ Gravação ignorada para {nome_jogo} devido a preço zerado.")
+        return 0.0, 0.0, 0.0
+
     fuso_br = ZoneInfo("America/Sao_Paulo")
     
     data_hoje = datetime.now(fuso_br).strftime("%Y-%m-%d")
@@ -363,9 +367,42 @@ def enviar_email(corpo_mensagem):
     except Exception as e:
         print(f"Erro ao enviar e-mail: {e}")
 
+# Limpar dados inválidos (Preços zerados)
+def limpar_dados_invalidos_csv():
+
+    """
+    Abre o CSV existente e remove todas as linhas onde o preço seja 0.0.
+    Isto garante que o gráfico do Streamlit não tenha quedas falsas para zero.
+    """
+
+    if os.path.exists(FICHEIRO_CSV) and os.path.getsize(FICHEIRO_CSV) > 0:
+        try:
+            df = pd.read_csv(FICHEIRO_CSV)
+            tamanho_original = len(df)
+            
+            # Filtrar o dataframe para manter APENAS linhas onde o Preço é maior que 0
+            df_limpo = df[df['Preco'] > 0.0]
+            
+            linhas_removidas = tamanho_original - len(df_limpo)
+            
+            if linhas_removidas > 0:
+
+                # Guardar o ficheiro limpo por cima do antigo
+                df_limpo.to_csv(FICHEIRO_CSV, index=False)
+                print(f"🧹 FAXINA: {linhas_removidas} registo(s) com preço 0.0 foram removidos do histórico!\n")
+
+            else:
+                print("✨ FAXINA: O histórico já está limpo. Nenhum valor zerado encontrado.\n")
+                
+        except Exception as e:
+            print(f"⚠️ Erro ao tentar limpar o CSV: {e}\n")
+
 # Executar a automação
 if __name__ == "__main__":
 
+    print("\nA iniciar verificação de integridade dos dados...")
+    limpar_dados_invalidos_csv()
+    
     texto_email = "Relatório Diário de Preços:\n\n"
     
     for jogo in ITENS_PARA_ACOMPANHAR:
