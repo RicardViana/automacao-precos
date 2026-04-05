@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 # 1. Lista de jogos e configurações
 
 # Variavel usada para não enviar o e-mail (teste)
-MODO_TESTE = False 
+MODO_TESTE = True 
 
 # Carrega as senhas do ficheiro .env
 load_dotenv()
@@ -26,17 +26,20 @@ ITENS_PARA_ACOMPANHAR = [
     {
         "nome": "Helldivers 2",
         "url": "https://www.xbox.com/pt-br/games/store/helldivers-2/9p3pt7pqjd0m",
-        "loja": "xbox"
+        "loja": "xbox",
+        "ativo": False
     },
     {
         "nome": "Crimson Desert",
         "url": "https://www.xbox.com/pt-BR/games/store/crimson-desert/9P6HVHDP2PGK/0010",
-        "loja": "xbox"
+        "loja": "xbox",
+        "ativo": True
     },
     {
         "nome": "PlayStation 5 Slim Digital",
         "url": "https://www.mercadolivre.com.br/console-playstation-5-slim-edico-digital-825-gb/p/MLB54963150",
-        "loja": "mercadolivre"
+        "loja": "mercadolivre",
+        "ativo": True
     }
 ]
 
@@ -406,6 +409,10 @@ if __name__ == "__main__":
     texto_email = "Relatório Diário de Preços:\n\n"
     
     for jogo in ITENS_PARA_ACOMPANHAR:
+        if not jogo.get("ativo", True):
+            print(f"A ignorar: {jogo['nome']} (Desativado)")
+            continue
+
         print(f"A processar: {jogo['nome']}...")
         
         preco_hoje = obter_preco_atual(jogo["url"], jogo["loja"])
