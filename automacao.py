@@ -434,5 +434,21 @@ if __name__ == "__main__":
         print("\n💡 MODO_TESTE está ativado. O e-mail NÃO foi enviado.")
 
     else:
-        print("\nA enviar o e-mail...")
-        enviar_email(texto_email)
+
+        # Logica de envio de e-mail
+        fuso_br = ZoneInfo("America/Sao_Paulo")
+        agora = datetime.now(fuso_br)
+        
+        dia_da_semana = agora.weekday() # weekday() retorna: 0=Seg, 1=Ter, 2=Qua, 3=Qui, 4=Sex, 5=Sáb, 6=Dom
+        hora_atual = agora.hour
+        
+        nomes_dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira", "Sábado", "Domingo"]
+        
+        # Regra: Enviar apenas à Sexta-feira (4) na execução da Tarde (hora >= 12)
+        if dia_da_semana == 4 and hora_atual >= 12:
+            print("\n✅ Dia e hora de envio detetados! A enviar o resumo semanal por e-mail...")
+            enviar_email(texto_email)
+
+        else:
+            print(f"\n🤫 Silêncio: Hoje é {nomes_dias[dia_da_semana]}. O e-mail semanal só é enviado à Sexta-feira à tarde.")
+            print("Os dados foram guardados no CSV com sucesso, mas o e-mail foi retido para evitar spam.")
