@@ -350,7 +350,7 @@ def enviar_email(corpo_mensagem):
 
     # Assunto do e-mail
     fuso_br = ZoneInfo("America/Sao_Paulo")
-    msg['Subject'] = f"Atualização Diária de Preços Xbox - {datetime.now(fuso_br).strftime('%d/%m/%Y')}"
+    msg['Subject'] = f"Atualização Diária de Preços - {datetime.now(fuso_br).strftime('%d/%m/%Y')}"
     
     # Criar o texto do e-mail
     msg.attach(MIMEText(texto_final, 'plain'))
