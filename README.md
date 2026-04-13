@@ -15,7 +15,6 @@ O projeto foi desenhado para funcionar de forma completamente autónoma (*Server
 1. **Agendamento Bi-diário (CRON):** O GitHub Actions "acorda" um servidor virtual em turnos (ex: manhã e noite) para capturar a volatilidade e promoções relâmpago ao longo do dia.
 2. **Web Scraping Multi-loja:** O robô entra nas páginas dos produtos e é redirecionado para funções "especialistas" de cada loja:
    * **Xbox:** Lê metadados invisíveis via JSON-LD (`schema.org`).
-   * **Mercado Livre:** Utiliza Regex para extrair variáveis ocultas de estado (React) ou faz matemática reversa a partir do texto das parcelas.
 3. **Persistência de Dados (Smart Upsert):** O Pandas processa o preço. A lógica de armazenamento permite até dois registos por dia (AM/PM), garantindo um ficheiro `historico_precos.csv` limpo, sem registos duplicados no mesmo turno, fazendo *commit* automático de volta para o repositório.
 4. **Alerta e Visualização:** O sistema envia um e-mail formatado com os preços atuais e o seu *Delta* (Variação). O Dashboard no Streamlit Cloud atualiza os gráficos automaticamente lendo o novo CSV.
 
