@@ -36,6 +36,7 @@ st.title("🎮 Monitor de Preços: Multi-loja")
 
 # Fonte de dados usada para gerar o dash
 FICHEIRO_CSV = "https://raw.githubusercontent.com/RicardViana/automacao-precos-xbox/main/dados/historico_precos.csv"
+
 # Carregamento e preparação dos dados
 try:
     # O Pandas faz o download da versão mais recente do CSV em tempo real
@@ -43,6 +44,16 @@ try:
     
     # Ignorar qualquer linha onde o preço seja 0.0
     df = df[df['Preco'] > 0.0]
+
+    # Desativar Lojas Inteiras (Mude para False para esconder)
+    LOJAS_ATIVAS = {
+        'xbox': True,
+        'mercadolivre': False 
+    }
+    
+    # Aplicar o filtro de Lojas
+    lojas_permitidas = [loja for loja, status in LOJAS_ATIVAS.items() if status]
+    df = df[df['Loja'].isin(lojas_permitidas)]
 
     # 1. Tratamento das colunas Loja e Hora (para retrocompatibilidade)
     if 'Loja' not in df.columns:
